@@ -6,4 +6,10 @@
 // - le sémaphore pour que  le service indique à l'orchestre la fin
 //   d'un traitement
 
+// Déclaration des fonctions pour initialiser et gérer les communications
+void init_orchestre_service(int service_num, int semaphore_key);
+void send_data_to_service(int fd_pipe, const char *data);
+void receive_data_from_service(int fd_pipe, char *buffer, size_t size);
+void notify_orchestre_of_completion(int semaphore_id);
+
 #endif
