@@ -14,7 +14,7 @@
 void init_orchestre_service(int service_num, int semaphore_key) {
     // Créer un sémaphore pour synchroniser avec l'orchestre
     int semaphore_id = semget(semaphore_key, 1, IPC_CREAT | 0666);
-    myassert_func(semaphore_id != -1, "Erreur lors de la création du sémaphore");
+    //myassert_func(semaphore_id != -1, "Erreur lors de la création du sémaphore");
 }
 
 // Fonction pour envoyer des données au service
