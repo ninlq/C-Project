@@ -45,9 +45,11 @@ void client_compression_verifArgs(int argc, char * argv[])
 // Les paramètres sont
 // - le file descriptor du tube de communication vers le service
 // - la chaîne devant être compressée
-static void sendData(/* fd_pipe_to_service,*/ /* chaine_à_envoyer */)
+static void sendData(int fd_pipe_to_service, const char *stringToCompress)
 {
-    // envoi de la chaîne à compresser
+    size_t length = strlen(stringToCompress);
+    write(fd_pipe_to_service, &length, sizeof(length));
+    write(fd_pipe_to_service, stringToCompress, length);
 }
 
 // ---------------------------------------------
@@ -55,10 +57,13 @@ static void sendData(/* fd_pipe_to_service,*/ /* chaine_à_envoyer */)
 // Les paramètres sont
 // - le file descriptor du tube de communication en provenance du service
 // - autre chose si nécessaire
-static void receiveResult(/* fd_pipe_from_service,*/ /* autres paramètres si nécessaire */)
+static void receiveResult(int fd_pipe_from_service)
 {
     // récupération de la chaîne compressée
     // affichage du résultat
+    char compressedString[256];
+    read(fd_pipe_from_service, compressedString, sizeof(compressedString));
+    printf("Chaîne compressée : %s\n", compressedString);
 }
 
 // ---------------------------------------------
@@ -68,10 +73,11 @@ static void receiveResult(/* fd_pipe_from_service,*/ /* autres paramètres si n�
 // - argc et argv fournis en ligne de commande
 // Cette fonction analyse argv et en déduit les données à envoyer
 //    - argv[2] : la chaîne à compresser
-void client_compression(/* fd des tubes avec le service, */ int argc, char * argv[])
+void client_compression(int fd_pipe_to_service, int fd_pipe_from_service, int argc, char *argv[])
 {
     // variables locales éventuelles
-    sendData(/* paramètres */);
-    receiveResult(/* paramètres */);
+    const char *stringToCompress = argv[2];
+    sendData(fd_pipe_to_service, stringToCompress);
+    receiveResult(fd_pipe_from_service);
 }
 

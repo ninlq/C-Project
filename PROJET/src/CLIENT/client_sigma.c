@@ -23,7 +23,7 @@ static void usage(const char *exeName, const char *numService, const char *messa
     if (message != NULL)
         fprintf(stderr, "message : %s\n", message);
     exit(EXIT_FAILURE);
-}
+} 
 
 /*----------------------------------------------*
  * fonction de vérification des paramètres
@@ -47,9 +47,11 @@ void client_sigma_verifArgs(int argc, char * argv[])
 // - le file descriptor du tube de communication vers le service
 // - le nombre de threads que doit utiliser le service
 // - le tableau de float dont on veut la somme
-static void sendData(/* fd_pipe_to_service,*/ /* nbre_threads, */ /* tableau_de_float_à_envoyer */)
+static void sendData(int fd_pipe_to_service, int nbThreads, float *data, int dataSize)
 {
     // envoi du nombre de threads et du tableau de float
+    write(fd_pipe_to_service, &nbThreads, sizeof(nbThreads));
+    write(fd_pipe_to_service, data, dataSize * sizeof(float));
 }
 
 // ---------------------------------------------
@@ -57,10 +59,13 @@ static void sendData(/* fd_pipe_to_service,*/ /* nbre_threads, */ /* tableau_de_
 // Les paramètres sont
 // - le file descriptor du tube de communication en provenance du service
 // - autre chose si nécessaire
-static void receiveResult(/* fd_pipe_from_service,*/ /* autres paramètres si nécessaire */)
+static void receiveResult(int fd_pipe_from_service)
 {
     // récupération du résultat
     // affichage du résultat
+    float result;
+    read(fd_pipe_from_service, &result, sizeof(result));
+    printf("La somme est : %f\n", result);
 }
 
 
@@ -72,10 +77,17 @@ static void receiveResult(/* fd_pipe_from_service,*/ /* autres paramètres si n�
 // Cette fonction analyse argv et en déduit les données à envoyer
 //    - argv[2] : nombre de threads
 //    - argv[3] à argv[argc-1]: les nombres flottants
-void client_sigma(/* fd des tubes avec le service, */ int argc, char * argv[])
+void client_sigma(/* fd des tubes avec le service, */int fd_pipe_to_service, int fd_pipe_from_service, int argc, char * argv[])
 {
     // variables locales éventuelles
-    sendData(/* paramètres */);
-    receiveResult(/* paramètres */);
+    int nbThreads = atoi(argv[2]);
+    int dataSize = argc - 3;
+    float *data = malloc(dataSize * sizeof(float));
+    for (int i = 0; i < dataSize; i++) {
+        data[i] = atof(argv[i + 3]);
+    }
+    sendData(fd_pipe_to_service, nbThreads, data, dataSize);
+    receiveResult(fd_pipe_from_service);
+    free(data);
 }
 

@@ -60,4 +60,5 @@ void service_somme(int fd_pipe_from_client, int fd_pipe_to_client) {
     sendResult(fd_pipe_to_client, result);
 
     // libération éventuelle de ressources
+    free(result);
 }

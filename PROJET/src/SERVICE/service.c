@@ -60,7 +60,7 @@ int main(int argc, char * argv[])
         //    ouverture des deux tubes nommés avec le client (déjà)
 
         //    attente du mot de passe du client
-         char client_password[256];
+        char client_password[256];
         read(fd_pipe_from_client, client_password, sizeof(client_password));
 
         //    si mot de passe incorrect
