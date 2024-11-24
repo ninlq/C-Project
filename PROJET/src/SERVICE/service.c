@@ -1,6 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <string.h> 
+#include <sys/types.h>
+#include <sys/ipc.h>
 
 #include "../UTILS/myassert.h"
 #include "../ORCHESTRE_SERVICE/orchestre_service.h"
@@ -9,6 +14,12 @@
 #include "service_somme.h"
 #include "service_compression.h"
 #include "service_sigma.h"
+
+char *nom_tube_client_vers_service; 
+char *nom_tube_service_vers_client; 
+int fd_tube_anonyme; 
+int num_service; 
+int semaphore_key;
 
 
 static void usage(const char *exeName, const char *message)
@@ -33,6 +44,12 @@ int main(int argc, char * argv[])
 {
     if (argc != 6)
         usage(argv[0], "nombre paramètres incorrect");
+
+    int num_service = atoi(argv[1]);
+    key_t semaphore_key = (key_t) atoi(argv[2]); 
+    int fd_tube_anonyme = atoi(argv[3]);
+    const char *nom_tube_service_vers_client = argv[4];
+    const char *nom_tube_client_vers_service = argv[5]; 
 
     // initialisations diverses : analyse de argv
     int fd_pipe_from_client = open(nom_tube_client_vers_service, O_RDONLY);
