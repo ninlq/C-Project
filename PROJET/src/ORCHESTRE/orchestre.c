@@ -1,14 +1,23 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <fcntl.h>
 #include <unistd.h>
-#include <sys/ipc.h>
+#include <string.h> 
 #include <sys/sem.h>
+#include <sys/ipc.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
-#include "./CONFIG/config.h"
-#include "./CLIENT_ORCHESTRE/client_orchestre.h"
-#include "./ORCHESTRE_SERVICE/orchestre_service.h"
-#include "./SERVICE/service.h"
+
+#include "../CONFIG/config.h"
+#include "../CLIENT_ORCHESTRE/client_orchestre.h"
+#include "../ORCHESTRE_SERVICE/orchestre_service.h"
+#include "../SERVICE/service.h"
+
+#define MAX_SERVICES 10
+
 
 
 static void usage(const char *exeName, const char *message)
@@ -38,17 +47,19 @@ int main(int argc, char * argv[])
     int semaphore_key = ftok("somefile", 'A'); 
     int semaphore_id = semget(semaphore_key, 1, IPC_CREAT | 0666);
     semctl(semaphore_id, 0, SETVAL, 1);
+    int pipe_orchestre_to_service[2];
+    int service_semaphore_ids[MAX_SERVICES];
     
     // lancement des services, avec pour chaque service :
     for (int i = 0; i < config_getNbServices(); i++) {
         // - création d'un tube anonyme pour converser (orchestre vers service)
-        int pipe_orchestre_to_service[2];
+        
         pipe(pipe_orchestre_to_service);
         // - un sémaphore pour que le service prévienne l'orchestre de la
         //   fin d'un traitement
         int service_semaphore_key = ftok("somefile", 'B' + i);
-        int service_semaphore_id = semget(service_semaphore_key, 1, IPC_CREAT | 0666);
-        semctl(service_semaphore_id, 0, SETVAL, 0);
+        service_semaphore_ids[i] = semget(service_semaphore_key, 1, IPC_CREAT | 0666);
+        semctl(service_semaphore_ids[i], 0, SETVAL, 0);
         // - création de deux tubes nommés (pour chaque service) pour les
         //   communications entre les clients et les services
         char service_to_client_pipe[256];
@@ -106,16 +117,20 @@ int main(int argc, char * argv[])
             char password[256];
             snprintf(password, sizeof(password), "password_%d", service_number);
             // Envoi du code de travail au service
-            write(pipe_orchestre_to_service[1], service_number, sizeof(service_number));
+            write(pipe_orchestre_to_service[1], &service_number, sizeof(service_number));
             // Envoi du mot de passe au service
             write (pipe_orchestre_to_service[1], password, sizeof(password));
 
             // Attente de la fin du traitement via le sémaphore
-            struct sembuf sem_op;
-            sem_op.sem_num = 0;
-            sem_op.sem_op = -1; // P operation
-            sem_op.sem_flg = 0;
-            semop(service_semaphore_id, &sem_op, 1);
+	    for (int i = 0; i < config_getNbServices(); i++) {
+               struct sembuf sem_op;
+               sem_op.sem_num = 0;
+               sem_op.sem_op = -1; // P operation
+               sem_op.sem_flg = 0;
+               if (semop(service_semaphore_ids[i], &sem_op, 1) == -1) {
+                   printf("Service %d has completed its processing.\n", i);
+               }
+            }
 
             // Réception du résultat du service
             char result[256];

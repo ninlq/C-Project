@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <unistd.h>
 
-#include "client_service.h"
+#include "../CLIENT_SERVICE/client_service.h"
 #include "client_sigma.h"
 
 
@@ -47,7 +48,7 @@ void client_sigma_verifArgs(int argc, char * argv[])
 // - le file descriptor du tube de communication vers le service
 // - le nombre de threads que doit utiliser le service
 // - le tableau de float dont on veut la somme
-static void sendData(int fd_pipe_to_service, int nbThreads, float *data, int dataSize)
+static void sendDataToService(int fd_pipe_to_service, int nbThreads, float *data, int dataSize)
 {
     // envoi du nombre de threads et du tableau de float
     write(fd_pipe_to_service, &nbThreads, sizeof(nbThreads));
@@ -59,7 +60,7 @@ static void sendData(int fd_pipe_to_service, int nbThreads, float *data, int dat
 // Les paramètres sont
 // - le file descriptor du tube de communication en provenance du service
 // - autre chose si nécessaire
-static void receiveResult(int fd_pipe_from_service)
+static void receiveResultFromService(int fd_pipe_from_service)
 {
     // récupération du résultat
     // affichage du résultat
@@ -77,7 +78,7 @@ static void receiveResult(int fd_pipe_from_service)
 // Cette fonction analyse argv et en déduit les données à envoyer
 //    - argv[2] : nombre de threads
 //    - argv[3] à argv[argc-1]: les nombres flottants
-void client_sigma(/* fd des tubes avec le service, */int fd_pipe_to_service, int fd_pipe_from_service, int argc, char * argv[])
+void client_sigma(int fd_pipe_to_service, int fd_pipe_from_service, int argc, char * argv[])
 {
     // variables locales éventuelles
     int nbThreads = atoi(argv[2]);
@@ -86,8 +87,8 @@ void client_sigma(/* fd des tubes avec le service, */int fd_pipe_to_service, int
     for (int i = 0; i < dataSize; i++) {
         data[i] = atof(argv[i + 3]);
     }
-    sendData(fd_pipe_to_service, nbThreads, data, dataSize);
-    receiveResult(fd_pipe_from_service);
+    sendDataToService(fd_pipe_to_service, nbThreads, data, dataSize);
+    receiveResultFromService(fd_pipe_from_service);
     free(data);
 }
 

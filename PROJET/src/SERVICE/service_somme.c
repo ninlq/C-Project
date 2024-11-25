@@ -54,10 +54,11 @@ void service_somme(int fd_pipe_from_client, int fd_pipe_to_client) {
     receiveData(fd_pipe_from_client, &data);
 
     // Traiter les données
-    int result = computeResult(data);
+    int *result = malloc(sizeof(int)); 
+    *result = computeResult(data);
 
     // Envoyer le résultat au client
-    sendResult(fd_pipe_to_client, result);
+    sendResult(fd_pipe_to_client, *result);
 
     // libération éventuelle de ressources
     free(result);

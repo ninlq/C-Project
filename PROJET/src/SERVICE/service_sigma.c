@@ -30,16 +30,16 @@ static void receiveData(int fd_pipe_from_client, SigmaData *sigmaData) {
 
     // Lire les données du tube
     bytes_read = read(fd_pipe_from_client, sigmaData->data, sigmaData->size * sizeof(float));
-    myassert(bytes_read == sigmaData->size * sizeof(float), "Erreur lors de la lecture des données");
+    myassert((size_t)bytes_read == sigmaData->size * sizeof(float), "Erreur lors de la lecture des données");
 }
 
 // fonction de traitement des données
 static float computeResult(SigmaData sigmaData) {
     float sum = 0.0f;
     for (int i = 0; i < sigmaData.size; i++) {
-        sum += sigmaData.data[i]; // Tính tổng của các số
+        sum += sigmaData.data[i]; 
     }
-    return sum; // Trả về tổng
+    return sum; 
 }
 
 // fonction d'envoi du résultat

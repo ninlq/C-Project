@@ -31,7 +31,7 @@ static void receiveData(int fd_pipe_from_client, CompressionData *compressionDat
 
     // Lire la chaîne du tube
     bytes_read = read(fd_pipe_from_client, compressionData->data, compressionData->length);
-    myassert(bytes_read == compressionData->length, "Erreur lors de la lecture des données");
+    myassert(bytes_read == (ssize_t)compressionData->length, "Erreur lors de la lecture des données");
 }
 
 // fonction de traitement des données
@@ -50,7 +50,7 @@ static void computeResult(CompressionData compressionData, char *result) {
 static void sendResult(int fd_pipe_to_client, const char *result) {
     // Écrire le résultat dans le tube
     ssize_t bytes_written = write(fd_pipe_to_client, result, strlen(result) + 1); // +1 pour le caractère nul
-    myassert(bytes_written == strlen(result) + 1, "Erreur lors de l'écriture du résultat");
+    myassert(bytes_written == (ssize_t)strlen(result) + 1, "Erreur lors de l'écriture du résultat");
 }
 
 /*----------------------------------------------*

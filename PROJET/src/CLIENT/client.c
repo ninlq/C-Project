@@ -1,18 +1,22 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <fcntl.h>
-#include <sys/types.h> 
-#include <sys/ipc.h> 
-#include <sys/sem.h> 
+#include <unistd.h>
+#include <string.h> 
+#include <sys/sem.h>
+#include <sys/ipc.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
-#include "./UTILS/io.h"
-#include "./UTILS/memory.h"
-#include "./UTILS/myassert.h"
+#include "../UTILS/io.h"
+#include "../UTILS/memory.h"
+#include "../UTILS/myassert.h"
 
-#include "./SERVICE/service.h"
-#include "./CLIENT_ORCHESTRE/client_orchestre.h"
-#include "./CLIENT_SERVICE/client_service.h"
+#include "../SERVICE/service.h"
+#include "../CLIENT_ORCHESTRE/client_orchestre.h"
+#include "../CLIENT_SERVICE/client_service.h"
 
 #include "client_arret.h"
 #include "client_somme.h"
@@ -145,7 +149,6 @@ int main(int argc, char * argv[])
     //     envoi du mot de passe au service
     write(fd_pipe_to_service, password, sizeof(password));
     //     attente de l'accusé de réception du service
-    int ack;
     read(fd_pipe_from_service, &ack, sizeof(ack));
     //     si mot de passe non accepté
     //         message d'erreur
@@ -162,10 +165,10 @@ int main(int argc, char * argv[])
     //                 ou . client_sigma
     switch (numService) {
         case SERVICE_SOMME:
-            client_somme(fd_pipe_to_service, fd_pipe_from_service, argc, argv);
+            client_somme(fd_pipe_to_service, fd_pipe_from_service, argv);
             break;
         case SERVICE_COMPRESSION:
-            client_compression(fd_pipe_to_service, fd_pipe_from_service, argc, argv);
+            client_compression(fd_pipe_to_service, fd_pipe_from_service, argv);
             break;
         case SERVICE_SIGMA:
             client_sigma(fd_pipe_to_service, fd_pipe_from_service, argc, argv);
@@ -188,4 +191,5 @@ int main(int argc, char * argv[])
     // libération éventuelle de ressources
     close_communication_with_orchestre();
     return EXIT_SUCCESS;
+}
 }
