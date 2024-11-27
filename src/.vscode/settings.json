@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "types.h": "c",
+        "config.h": "c",
+        "stdio.h": "c",
+        "stdlib.h": "c",
+        "client_service.h": "c",
+        "service_sigma.h": "c",
+        "orchestre_service.h": "c",
+        "unistd.h": "c",
+        "stdbool.h": "c"
+    }
+}
